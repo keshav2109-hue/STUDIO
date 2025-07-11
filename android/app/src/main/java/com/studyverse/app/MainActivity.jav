@@ -1,5 +1,5 @@
 
-package com.monstorcoursehub.app;
+package com.studyverse.official;
 
 import android.os.Bundle;
 import android.webkit.WebSettings;
