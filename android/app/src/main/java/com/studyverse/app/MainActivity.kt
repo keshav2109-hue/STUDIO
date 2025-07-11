@@ -1,5 +1,5 @@
 
-package com.monstorcoursehub.app // Ensure this matches your AndroidManifest.xml and build.gradle namespace
+package com.studyverse.official // Ensure this matches your AndroidManifest.xml and build.gradle namespace
 
 import android.annotation.SuppressLint
 import androidx.appcompat.app.AppCompatActivity
