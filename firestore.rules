@@ -1,0 +1,50 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Users:
+    // - Anyone can create their own user document (on signup).
+    // - Users can only read their own document.
+    // - Users can only update their own displayName, photoURL, bio, and lastLogin.
+    match /users/{userId} {
+      allow read: if request.auth != null && request.auth.uid == userId;
+      allow create: if request.auth != null && request.auth.uid == userId;
+      allow update: if request.auth != null && request.auth.uid == userId
+                    && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['displayName', 'photoURL', 'bio', 'lastLogin']);
+    }
+
+    // User Progress:
+    // - Users can create, read, and update their own progress document.
+    // - Public read access is allowed for the leaderboard.
+    match /userProgress/{userId} {
+      allow read: if true; // Allow public read for leaderboard
+      allow create, update: if request.auth != null && request.auth.uid == userId;
+    }
+    
+    // Global Announcements:
+    // - Publicly readable by anyone.
+    // - Should only be writable by an admin through the Firebase Console.
+    match /global_announcements/{announcementId} {
+      allow read: if true;
+      allow write: if false; // Prevent client-side writes
+    }
+
+    // Shortened URLs:
+    // - Anyone can create a new shortened URL.
+    // - The alias must not already exist.
+    // - Publicly readable for redirection.
+    // - Click count can be incremented. Other fields are immutable.
+    match /shortenedUrls/{alias} {
+       allow read: if true;
+       allow create: if !exists(/databases/$(database)/documents/shortenedUrls/$(alias));
+       
+       // Only allow updates to the 'clickCount' field, and only by incrementing it by 1.
+       allow update: if request.resource.data.longUrl == resource.data.longUrl &&
+                        request.resource.data.createdAt == resource.data.createdAt &&
+                        request.resource.data.clickCount == resource.data.clickCount + 1;
+                        
+       allow delete: if false;
+    }
+  }
+}
